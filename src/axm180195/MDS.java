@@ -7,6 +7,7 @@
 // Change to your net id
 package axm180195;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,12 +31,12 @@ public class MDS {
 	}
 
 	private class Product {
-		private long id;
+		private Long id;
 		private List<Long> desc;
 		private Money price;
 
 		Product() {
-			id = 0;
+			id = (long) 0;
 			desc = new LinkedList<>();
 			price = new Money();
 		}
@@ -52,8 +53,28 @@ public class MDS {
 		/**
 		 * @return id of the product
 		 */
-		private long getId() {
+		private Long getId() {
 			return this.id;
+		}
+
+		private Money getPrice() {
+			return this.price;
+		}
+	}
+
+	private class idComp implements Comparator<Product> {
+		@Override
+		public int compare(Product o1, Product o2) {
+			// TODO Auto-generated method stub
+			return o1.getId().compareTo(o2.getId());
+		}
+	}
+
+	private class priceComp implements Comparator<Product> {
+		@Override
+		public int compare(Product o1, Product o2) {
+			// TODO Auto-generated method stub
+			return o1.getPrice().compareTo(o2.getPrice());
 		}
 	}
 
@@ -79,7 +100,7 @@ public class MDS {
 			tree.put(id, p);
 			for (Long num : list) {
 				if (!map.containsKey(num)) { // Map doesn't have desc as key.
-					TreeSet<Product> productSet = new TreeSet<>();
+					TreeSet<Product> productSet = new TreeSet<>(new priceComp());
 					productSet.add(p);
 					map.put(num, productSet);
 				} else { // Map have the desc key.
@@ -115,7 +136,7 @@ public class MDS {
 		} else if (s.equals("add")) {
 			for (Long num : p.desc) {
 				if (!map.containsKey(num)) {// desc key not in map.
-					TreeSet<Product> productSet = new TreeSet<>();
+					TreeSet<Product> productSet = new TreeSet<>(new priceComp());
 					productSet.add(p);
 					map.put(num, productSet);
 				} else { // desc key is present in map.
@@ -143,8 +164,11 @@ public class MDS {
 	 */
 	public long delete(long id) {
 		if (tree.containsKey(id)) {// ID found -> return sum of desc.
-			Long sum = (long) 0;
 			Product p = tree.get(id);
+			// Delete product from all entries in map.
+			updateMapEntry(p, "remove");
+
+			Long sum = (long) 0;
 			for (Long num : p.desc) {
 				sum += num;
 			}
@@ -161,6 +185,9 @@ public class MDS {
 	 * such item.
 	 */
 	public Money findMinPrice(long n) {
+		if (map.containsKey(n)) { // map contains desc key.
+			return map.get(n).first().price;
+		}
 		return new Money();
 	}
 
@@ -170,6 +197,9 @@ public class MDS {
 	 * such item.
 	 */
 	public Money findMaxPrice(long n) {
+		if (map.containsKey(n)) { // map contains desc key.
+			return map.get(n).last().price;
+		}
 		return new Money();
 	}
 
@@ -179,7 +209,13 @@ public class MDS {
 	 * given range, [low, high].
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
-		return 0;
+		int count = 0;
+		if (map.containsKey(n)) {
+			for (Product p : map.get(n)) {
+				// if p.price within low-high increase count.
+			}
+		}
+		return count;
 	}
 
 	/*
@@ -243,11 +279,15 @@ public class MDS {
 		}
 
 		public int compareTo(Money other) { // Complete this, if needed
-			return 0;
+			return Double.compare(this.getMoney(), other.getMoney());
 		}
 
 		public String toString() {
 			return d + "." + c;
+		}
+
+		private double getMoney() {
+			return (double) (d + (c / 100));
 		}
 	}
 
