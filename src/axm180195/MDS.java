@@ -119,7 +119,7 @@ public class MDS {
 					productSet.add(p);
 					map.put(num, productSet);
 				} else { // desc key is present in map.
-					map.get(num).add(p);
+					map.get(num).add(p); // getting treeSet for num key and adding product to it.
 				}
 			}
 		} else {
