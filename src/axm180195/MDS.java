@@ -234,15 +234,15 @@ public class MDS {
 		if (l > h)
 			return new Money();
 
-		double sum = 0;
+		long sum = 0;
 		for (Long id : tree.keySet()) {
 			if (id >= l && id <= h) {
 				Product p = tree.get(id);
-				double priceTemp = p.price.getMoney();
-				double newPriceTemp = priceTemp + (priceTemp * (rate / 100));
-				double diff = Math.floor((newPriceTemp - priceTemp) * 100) / 100;
+				long priceTemp = Long.parseLong(p.price.toString());
+				long newPriceTemp = (long) (priceTemp + (priceTemp * (rate / 100)));
+				long diff = (long) (Math.floor((newPriceTemp - priceTemp) * 100) / 100); // gives upto 2 decimal places
 				sum += diff;
-				p.price = new Money(String.valueOf(diff));
+				p.price = new Money(String.valueOf(newPriceTemp));
 			}
 		}
 
