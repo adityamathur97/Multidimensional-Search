@@ -25,13 +25,11 @@ public class MDS {
 	// Add fields of MDS here
 	private TreeMap<Long, Product> tree;
 	private Map<Long, TreeSet<Product>> map;
-	private int size;
 
 	// Constructors
 	public MDS() {
 		tree = new TreeMap<>();
 		map = new HashMap<>();
-		size = 0;
 	}
 
 	private class Product {
@@ -39,7 +37,7 @@ public class MDS {
 		private List<Long> desc;
 		private Money price;
 
-		Product() {
+		Product() { // never used.
 			id = (long) 0;
 			desc = new LinkedList<>();
 			price = new Money();
@@ -75,10 +73,11 @@ public class MDS {
 				return -1;
 			} else if (priceValue > 0) {
 				return 1;
-			} else { // if prices are same then comparison is done on ID.
-				if (o1.id < o2.id) {
+			} else { // if prices are same then comparison is done on ID because TreeSet doesn't
+						// automatically handles the equal case.
+				if (o1.getId() < o2.getId()) {
 					return -1;
-				} else if (o1.id > o2.id) {
+				} else if (o1.getId() > o2.getId()) {
 					return 1;
 				} else {
 					return 0;
@@ -117,7 +116,6 @@ public class MDS {
 					map.get(num).add(p); // getting the treeSet and adding product to it.
 				}
 			}
-			size++; // maybe remove this.
 			return 1;
 		} else { // Tree contains the ID.
 			Product p = tree.get(id);
@@ -150,6 +148,7 @@ public class MDS {
 		} else if (s.equals("add")) {
 			for (Long num : p.desc) {
 				if (!map.containsKey(num)) {// desc key not in map.
+					// creating TreeSet to add to HashMap with corresponding desc key.
 					TreeSet<Product> productSet = new TreeSet<>(new priceComp());
 					productSet.add(p);
 					map.put(num, productSet);
@@ -187,7 +186,7 @@ public class MDS {
 				sum += num;
 			}
 			tree.remove(id);
-			return sum;
+			return sum; // returning sum of all the desc items of deleted id.
 		}
 		return 0; // ID not found -> return 0.
 	}
@@ -238,18 +237,17 @@ public class MDS {
 			if (map.get(n).size() == 0) {
 				return count;
 			}
+			// Dummy products to set low and high ends for NavigableSet.
 			Product pLow = new Product(Long.MIN_VALUE, new Money(low), new LinkedList<>());
 			Product pHigh = new Product(Long.MAX_VALUE, new Money(high), new LinkedList<>());
+
+			// Filtered Set between given low and high.
 			NavigableSet<Product> productSet = map.get(n).subSet(pLow, true, pHigh, true);
 			if (productSet.size() == 0) {
 				return count;
 			}
 			for (Product p : productSet) {
 				count++;
-//				// if p.price within low-high increase count.
-//				if (p.price.compareTo(low) >= 0 && p.price.compareTo(high) <= 0) {
-//					count++;
-//				}
 			}
 		}
 		return count;
@@ -266,7 +264,7 @@ public class MDS {
 
 		BigDecimal rate_bd = new BigDecimal(rate);
 
-		rate_bd = rate_bd.divide(new BigDecimal(100));
+		rate_bd = rate_bd.divide(new BigDecimal(100)).setScale(2, RoundingMode.DOWN);
 
 		SortedMap<Long, Product> searchTree = tree.subMap(l, h + 1);
 
@@ -275,8 +273,7 @@ public class MDS {
 			if (id >= l && id <= h) {
 				Product p = searchTree.get(id);
 
-				double oldPrice = Double.parseDouble(p.price.toString());
-				BigDecimal oldPrice_bd = new BigDecimal(oldPrice).setScale(2, RoundingMode.DOWN);
+				BigDecimal oldPrice_bd = new BigDecimal(p.price.toString()).setScale(2, RoundingMode.DOWN);
 
 				BigDecimal newPrice_bd = oldPrice_bd.add(oldPrice_bd.multiply(rate_bd)).setScale(2, RoundingMode.DOWN);
 
@@ -305,6 +302,8 @@ public class MDS {
 	 */
 	public long removeNames(long id, java.util.List<Long> list) {
 		Product p = tree.get(id);
+
+		// List of common Id's to be deleted.
 		List<Long> delList = new LinkedList<>();
 		for (Long num : p.desc) {
 			if (list.contains(num)) {
@@ -356,6 +355,11 @@ public class MDS {
 			}
 		}
 
+		/**
+		 * Copy constructor for Money class, creates a deep copy of the object.
+		 * 
+		 * @param o object to be copied
+		 */
 		public Money(Money o) {
 			this.d = o.d;
 			this.c = o.c;
@@ -390,16 +394,6 @@ public class MDS {
 				return d + ".0" + c; // driver code mistake
 			return d + "." + c;
 		}
-
-//		private double getMoney() {
-//			return (double) (d + (c / 100));
-//		}
-//
-//		private void setMoney(double amount) {
-//			String[] str = String.valueOf(amount).split(".");
-//			this.d = Long.parseLong(str[0]);
-//			this.c = Integer.parseInt(str[1]);
-//		}
 	}
 
 }
