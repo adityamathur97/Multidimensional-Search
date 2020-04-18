@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -21,7 +23,7 @@ import java.util.TreeSet;
 
 public class MDS {
 	// Add fields of MDS here
-	private Map<Long, Product> tree;
+	private TreeMap<Long, Product> tree;
 	private Map<Long, TreeSet<Product>> map;
 	private int size;
 
@@ -64,19 +66,24 @@ public class MDS {
 		}
 	}
 
-	private class idComp implements Comparator<Product> {
-		@Override
-		public int compare(Product o1, Product o2) {
-			// TODO Auto-generated method stub
-			return o1.getId().compareTo(o2.getId());
-		}
-	}
-
 	private class priceComp implements Comparator<Product> {
 		@Override
 		public int compare(Product o1, Product o2) {
 			// TODO Auto-generated method stub
-			return o1.getPrice().compareTo(o2.getPrice());
+			int priceValue = o1.getPrice().compareTo(o2.getPrice());
+			if (priceValue < 0) {
+				return -1;
+			} else if (priceValue > 0) {
+				return 1;
+			} else { // if prices are same then comparison is done on ID.
+				if (o1.id < o2.id) {
+					return -1;
+				} else if (o1.id > o2.id) {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
 		}
 	}
 
@@ -100,6 +107,7 @@ public class MDS {
 		if (!tree.containsKey(id)) { // Tree doesn't contains the ID.
 			Product p = new Product(id, price, list);
 			tree.put(id, p);
+			// inserting values into Map.
 			for (Long num : list) {
 				if (!map.containsKey(num)) { // Map doesn't have desc as key.
 					TreeSet<Product> productSet = new TreeSet<>(new priceComp());
@@ -109,13 +117,13 @@ public class MDS {
 					map.get(num).add(p); // getting the treeSet and adding product to it.
 				}
 			}
-			size++;
+			size++; // maybe remove this.
 			return 1;
 		} else { // Tree contains the ID.
 			Product p = tree.get(id);
 			if (list == null || list.isEmpty()) { // list is null || list is empty
 				p.price = price;
-				for (Long num : p.desc) {
+				for (Long num : p.desc) { // adding and removing p so that tree set sorts data automatically.
 					map.get(num).remove(p);
 					map.get(num).add(p);
 				}
@@ -223,15 +231,25 @@ public class MDS {
 	public int findPriceRange(long n, Money low, Money high) {
 		int count = 0;
 
-		if (low.getMoney() > high.getMoney())
+		if (low.compareTo(high) > 0)
 			return count;
 
 		if (map.containsKey(n)) {
-			for (Product p : map.get(n)) {
-				// if p.price within low-high increase count.
-				if (p.price.compareTo(low) >= 0 && p.price.compareTo(high) <= 0) {
-					count++;
-				}
+			if (map.get(n).size() == 0) {
+				return count;
+			}
+			Product pLow = new Product(Long.MIN_VALUE, new Money(low), new LinkedList<>());
+			Product pHigh = new Product(Long.MAX_VALUE, new Money(high), new LinkedList<>());
+			NavigableSet<Product> productSet = map.get(n).subSet(pLow, true, pHigh, true);
+			if (productSet.size() == 0) {
+				return count;
+			}
+			for (Product p : productSet) {
+				count++;
+//				// if p.price within low-high increase count.
+//				if (p.price.compareTo(low) >= 0 && p.price.compareTo(high) <= 0) {
+//					count++;
+//				}
 			}
 		}
 		return count;
@@ -246,12 +264,16 @@ public class MDS {
 		if (l > h)
 			return new Money();
 
-		BigDecimal sum_bd = new BigDecimal(0);
-		for (Long id : tree.keySet()) {
-			if (id >= l && id <= h) {
-				Product p = tree.get(id);
+		BigDecimal rate_bd = new BigDecimal(rate);
 
-				BigDecimal rate_bd = new BigDecimal(rate / 100).setScale(2, RoundingMode.DOWN);
+		rate_bd = rate_bd.divide(new BigDecimal(100));
+
+		SortedMap<Long, Product> searchTree = tree.subMap(l, h + 1);
+
+		BigDecimal sum_bd = new BigDecimal(0);
+		for (Long id : searchTree.keySet()) {
+			if (id >= l && id <= h) {
+				Product p = searchTree.get(id);
 
 				double oldPrice = Double.parseDouble(p.price.toString());
 				BigDecimal oldPrice_bd = new BigDecimal(oldPrice).setScale(2, RoundingMode.DOWN);
@@ -264,7 +286,7 @@ public class MDS {
 
 				p.price = new Money(newPrice_bd.toString());
 
-				for (Long num : p.desc) {
+				for (Long num : p.desc) { // removing and adding in TreeSet so it automatically sorts itself.
 					map.get(num).remove(p);
 					map.get(num).add(p);
 				}
@@ -334,6 +356,11 @@ public class MDS {
 			}
 		}
 
+		public Money(Money o) {
+			this.d = o.d;
+			this.c = o.c;
+		}
+
 		public long dollars() {
 			return d;
 		}
@@ -343,7 +370,19 @@ public class MDS {
 		}
 
 		public int compareTo(Money other) { // Complete this, if needed
-			return Double.compare(this.getMoney(), other.getMoney());
+			if (this.d < other.d) {
+				return -1;
+			} else if (this.d > other.d) {
+				return 1;
+			} else {
+				if (this.c < other.c) {
+					return -1;
+				} else if (this.c > other.c) {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
 		}
 
 		public String toString() {
@@ -352,9 +391,9 @@ public class MDS {
 			return d + "." + c;
 		}
 
-		private double getMoney() {
-			return (double) (d + (c / 100));
-		}
+//		private double getMoney() {
+//			return (double) (d + (c / 100));
+//		}
 //
 //		private void setMoney(double amount) {
 //			String[] str = String.valueOf(amount).split(".");

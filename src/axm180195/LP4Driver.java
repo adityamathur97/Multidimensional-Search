@@ -21,7 +21,7 @@ public class LP4Driver {
 		} else {
 			in = new Scanner(System.in);
 		}
-		boolean VERBOSE = false;
+		boolean VERBOSE = true;
 		if (args.length > 1) {
 			VERBOSE = Boolean.parseBoolean(args[1]);
 		}
