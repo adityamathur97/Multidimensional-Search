@@ -210,6 +210,10 @@ public class MDS {
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
 		int count = 0;
+
+		if (low.getMoney() > high.getMoney())
+			return count;
+
 		if (map.containsKey(n)) {
 			for (Product p : map.get(n)) {
 				// if p.price within low-high increase count.
@@ -227,16 +231,22 @@ public class MDS {
 	 * Returns the sum of the net increases of the prices.
 	 */
 	public Money priceHike(long l, long h, double rate) {
+		if (l > h)
+			return new Money();
+
+		double sum = 0;
 		for (Long id : tree.keySet()) {
 			if (id >= l && id <= h) {
 				Product p = tree.get(id);
 				double priceTemp = p.price.getMoney();
 				double newPriceTemp = priceTemp + (priceTemp * (rate / 100));
-				priceTemp = Math.floor(priceTemp);
-				// p.setMoney(priceTemp, 0);
+				double diff = Math.floor((newPriceTemp - priceTemp) * 100) / 100;
+				sum += diff;
+				p.price = new Money(String.valueOf(diff));
 			}
 		}
-		return new Money();
+
+		return new Money(String.valueOf(sum));
 	}
 
 	/*
@@ -317,6 +327,12 @@ public class MDS {
 		private double getMoney() {
 			return (double) (d + (c / 100));
 		}
+//
+//		private void setMoney(double amount) {
+//			String[] str = String.valueOf(amount).split(".");
+//			this.d = Long.parseLong(str[0]);
+//			this.c = Integer.parseInt(str[1]);
+//		}
 	}
 
 }
