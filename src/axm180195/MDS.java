@@ -234,13 +234,13 @@ public class MDS {
 		if (l > h)
 			return new Money();
 
-		long sum = 0;
+		double sum = 0;
 		for (Long id : tree.keySet()) {
 			if (id >= l && id <= h) {
 				Product p = tree.get(id);
-				long priceTemp = Long.parseLong(p.price.toString());
-				long newPriceTemp = (long) (priceTemp + (priceTemp * (rate / 100)));
-				long diff = (long) (Math.floor((newPriceTemp - priceTemp) * 100) / 100); // gives upto 2 decimal places
+				double priceTemp = Double.parseDouble(p.price.toString());
+				double newPriceTemp = (priceTemp + (priceTemp * (rate / 100)));
+				double diff = (Math.floor((newPriceTemp - priceTemp) * 100) / 100); // gives upto 2 decimal places
 				sum += diff;
 				p.price = new Money(String.valueOf(newPriceTemp));
 			}
@@ -321,11 +321,13 @@ public class MDS {
 		}
 
 		public String toString() {
+			if (c < 10)
+				return d + ".0" + c; // driver code mistake
 			return d + "." + c;
 		}
 
 		private double getMoney() {
-			return (double) (d + (c / 100));
+			return (d + (c / 100));
 		}
 //
 //		private void setMoney(double amount) {
