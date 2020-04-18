@@ -15,6 +15,8 @@ public class LP4Driver {
 		Scanner in;
 		if (args.length > 0 && !args[0].equals("-")) {
 			File file = new File(args[0]);
+			file = new File("C:\\Users\\adity\\eclipse-workspace\\MDS\\src\\axm180195\\test-lp4\\407.txt"); // remove
+																											// this
 			in = new Scanner(file);
 		} else {
 			in = new Scanner(System.in);

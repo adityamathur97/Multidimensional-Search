@@ -7,6 +7,8 @@
 // Change to your net id
 package axm180195;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -113,6 +115,10 @@ public class MDS {
 			Product p = tree.get(id);
 			if (list == null || list.isEmpty()) { // list is null || list is empty
 				p.price = price;
+				for (Long num : p.desc) {
+					map.get(num).remove(p);
+					map.get(num).add(p);
+				}
 			} else { // list contains data.
 				p.price = price;
 				// remove entries from map and clear desc list.
@@ -186,6 +192,9 @@ public class MDS {
 	 */
 	public Money findMinPrice(long n) {
 		if (map.containsKey(n)) { // map contains desc key.
+			if (map.get(n).size() == 0) {
+				return new Money();
+			}
 			return map.get(n).first().price;
 		}
 		return new Money();
@@ -198,6 +207,9 @@ public class MDS {
 	 */
 	public Money findMaxPrice(long n) {
 		if (map.containsKey(n)) { // map contains desc key.
+			if (map.get(n).size() == 0) {
+				return new Money();
+			}
 			return map.get(n).last().price;
 		}
 		return new Money();
@@ -234,19 +246,33 @@ public class MDS {
 		if (l > h)
 			return new Money();
 
-		double sum = 0;
+		BigDecimal sum_bd = new BigDecimal(0);
 		for (Long id : tree.keySet()) {
 			if (id >= l && id <= h) {
 				Product p = tree.get(id);
-				double priceTemp = Double.parseDouble(p.price.toString());
-				double newPriceTemp = (priceTemp + (priceTemp * (rate / 100)));
-				double diff = (Math.floor((newPriceTemp - priceTemp) * 100) / 100); // gives upto 2 decimal places
-				sum += diff;
-				p.price = new Money(String.valueOf(newPriceTemp));
+
+				BigDecimal rate_bd = new BigDecimal(rate / 100).setScale(2, RoundingMode.DOWN);
+
+				double oldPrice = Double.parseDouble(p.price.toString());
+				BigDecimal oldPrice_bd = new BigDecimal(oldPrice).setScale(2, RoundingMode.DOWN);
+
+				BigDecimal newPrice_bd = oldPrice_bd.add(oldPrice_bd.multiply(rate_bd)).setScale(2, RoundingMode.DOWN);
+
+				BigDecimal diff_bd = newPrice_bd.subtract(oldPrice_bd).setScale(2, RoundingMode.DOWN);
+
+				sum_bd = sum_bd.add(diff_bd).setScale(2, RoundingMode.DOWN);
+
+				p.price = new Money(newPrice_bd.toString());
+
+				for (Long num : p.desc) {
+					map.get(num).remove(p);
+					map.get(num).add(p);
+				}
+
 			}
 		}
 
-		return new Money(String.valueOf(sum));
+		return new Money(sum_bd.toString());
 	}
 
 	/*
@@ -327,7 +353,7 @@ public class MDS {
 		}
 
 		private double getMoney() {
-			return (d + (c / 100));
+			return (double) (d + (c / 100));
 		}
 //
 //		private void setMoney(double amount) {
