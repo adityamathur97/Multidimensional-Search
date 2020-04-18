@@ -233,11 +233,10 @@ public class MDS {
 				double priceTemp = p.price.getMoney();
 				double newPriceTemp = priceTemp + (priceTemp * (rate / 100));
 				priceTemp = Math.floor(priceTemp);
-				p.setMoney(priceTemp, 0);
+				// p.setMoney(priceTemp, 0);
 			}
 		}
 		return new Money();
-
 	}
 
 	/*
