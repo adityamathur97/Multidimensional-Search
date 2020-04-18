@@ -10,7 +10,20 @@ Insert 37 47.44 109 475 694 88 0
 # Another item with id=37, price="47.44", name="109 475 694 88"
 # Return: 1
 #
-FindMaxPrice 475		
-# Return: 47.44 (id of items considered: 22, 37).  Added to total: 47
-#
+FindMinPrice 475
+# Return: 19
+Find 12
+# Return: 96
+FindPriceRange 475 10.00 50.00
+# Return: 2
 End
+
+
+# Insert is fine
+# PriceHike is fine
+# FindMaxPrice is fine
+# FindMinPrice is fine
+# Delete is fine
+# Find is fine
+# FindPriceRange is fine
+# RemoveNames cant be tested becasue not present
