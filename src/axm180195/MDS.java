@@ -213,6 +213,9 @@ public class MDS {
 		if (map.containsKey(n)) {
 			for (Product p : map.get(n)) {
 				// if p.price within low-high increase count.
+				if (p.price.compareTo(low) >= 0 && p.price.compareTo(high) <= 0) {
+					count++;
+				}
 			}
 		}
 		return count;
@@ -224,7 +227,17 @@ public class MDS {
 	 * Returns the sum of the net increases of the prices.
 	 */
 	public Money priceHike(long l, long h, double rate) {
+		for (Long id : tree.keySet()) {
+			if (id >= l && id <= h) {
+				Product p = tree.get(id);
+				double priceTemp = p.price.getMoney();
+				double newPriceTemp = priceTemp + (priceTemp * (rate / 100));
+				priceTemp = Math.floor(priceTemp);
+				p.setMoney(priceTemp, 0);
+			}
+		}
 		return new Money();
+
 	}
 
 	/*
@@ -234,7 +247,23 @@ public class MDS {
 	 * description of id. Return 0 if there is no such id.
 	 */
 	public long removeNames(long id, java.util.List<Long> list) {
-		return 0;
+		Product p = tree.get(id);
+		List<Long> delList = new LinkedList<>();
+		for (Long num : p.desc) {
+			if (list.contains(num)) {
+				delList.add(num);
+			}
+		}
+
+		long sum = 0;
+		for (Long num : delList) {
+			sum += num;
+			map.get(num).remove(p);
+		}
+
+		p.desc.removeAll(delList);
+
+		return sum;
 	}
 
 	// Do not modify the Money class in a way that breaks LP4Driver.java
